@@ -1,4 +1,4 @@
-name: Test X Reader
+name: Test RSS to Telegram
 
 on:
   workflow_dispatch:
@@ -19,12 +19,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run test
+      - name: Run RSS to Telegram
         env:
-          X_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
-          X_CT0: ${{ secrets.X_CT0 }}
-          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-          X_CLIENT_TRANSACTION_ID: ${{ secrets.X_CLIENT_TRANSACTION_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
