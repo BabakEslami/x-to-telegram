@@ -1,52 +1,90 @@
 import os
-from playwright.sync_api import sync_playwright
+import requests
 
-X_USERNAME = "melatonin38"
+URL = (
+    "https://x.com/i/api/graphql/"
+    "Yr8749ieoUptxRqQv766Fw/"
+    "UserOriginalsTimeline"
+)
 
-AUTH_TOKEN = os.environ["X_AUTH_TOKEN"]
-CT0 = os.environ["X_CT0"]
+params = {
+    "variables": (
+        '{"userId":"1459098428236046341",'
+        '"count":20,'
+        '"includePromotedContent":true,'
+        '"withQuickPromoteEligibilityTweetFields":true,'
+        '"withVoice":true}'
+    ),
+    "features": (
+        '{"rweb_video_screen_enabled":false,'
+        '"rweb_cashtags_enabled":true,'
+        '"profile_label_improvements_pcf_label_in_post_enabled":true,'
+        '"responsive_web_profile_redirect_enabled":true,'
+        '"rweb_tipjar_consumption_enabled":false,'
+        '"verified_phone_label_enabled":false,'
+        '"creator_subscriptions_tweet_preview_api_enabled":true,'
+        '"responsive_web_graphql_timeline_navigation_enabled":true,'
+        '"premium_content_api_read_enabled":false,'
+        '"communities_web_enable_tweet_community_results_fetch":true,'
+        '"c9s_tweet_anatomy_moderator_badge_enabled":true,'
+        '"responsive_web_grok_analyze_button_fetch_trends_enabled":false,'
+        '"responsive_web_grok_analyze_post_followups_enabled":true,'
+        '"rweb_cashtags_composer_attachment_enabled":true,'
+        '"responsive_web_jetfuel_frame":true,'
+        '"rweb_sports_post_context_enabled":true,'
+        '"responsive_web_grok_share_attachment_enabled":true,'
+        '"responsive_web_grok_annotations_enabled":true,'
+        '"articles_preview_enabled":true,'
+        '"responsive_web_edit_tweet_api_enabled":true,'
+        '"rweb_conversational_replies_downvote_enabled":false,'
+        '"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,'
+        '"view_counts_everywhere_api_enabled":true,'
+        '"longform_notetweets_consumption_enabled":true,'
+        '"responsive_web_twitter_article_tweet_consumption_enabled":true,'
+        '"content_disclosure_indicator_enabled":true,'
+        '"content_disclosure_ai_generated_indicator_enabled":true,'
+        '"responsive_web_grok_show_grok_translated_post":true,'
+        '"responsive_web_grok_analysis_button_from_backend":true,'
+        '"post_ctas_fetch_enabled":false,'
+        '"freedom_of_speech_not_reach_fetch_enabled":true,'
+        '"standardized_nudges_misinfo":true,'
+        '"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,'
+        '"longform_notetweets_rich_text_read_enabled":true,'
+        '"longform_notetweets_inline_media_enabled":false,'
+        '"responsive_web_nested_quote_preview_enabled":false,'
+        '"responsive_web_grok_image_annotation_enabled":true,'
+        '"responsive_web_grok_imagine_annotation_enabled":true,'
+        '"responsive_web_grok_community_note_auto_translation_is_enabled":true,'
+        '"responsive_web_enhance_cards_enabled":false}'
+    ),
+    "fieldToggles": '{"withArticlePlainText":false}',
+}
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
+headers = {
+    "authorization": f"Bearer {os.environ['X_BEARER_TOKEN']}",
+    "x-csrf-token": os.environ["X_CT0"],
+    "x-client-transaction-id": os.environ["X_CLIENT_TRANSACTION_ID"],
+    "x-twitter-active-user": "yes",
+    "x-twitter-auth-type": "OAuth2Session",
+    "user-agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/153.0.0.0 Safari/537.36"
+    ),
+}
 
-    context = browser.new_context()
+cookies = {
+    "auth_token": os.environ["X_AUTH_TOKEN"],
+    "ct0": os.environ["X_CT0"],
+}
 
-    context.add_cookies([
-        {
-            "name": "auth_token",
-            "value": AUTH_TOKEN,
-            "domain": ".x.com",
-            "path": "/",
-            "httpOnly": True,
-            "secure": True,
-        },
-        {
-            "name": "ct0",
-            "value": CT0,
-            "domain": ".x.com",
-            "path": "/",
-            "secure": True,
-        },
-    ])
+response = requests.get(
+    URL,
+    params=params,
+    headers=headers,
+    cookies=cookies,
+    timeout=30,
+)
 
-    page = context.new_page()
-
-    url = f"https://x.com/{X_USERNAME}"
-    print("Opening:", url)
-
-    page.goto(url, wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(8000)
-
-    print("Page title:", page.title())
-
-    articles = page.locator("article")
-    count = articles.count()
-
-    print("Found articles:", count)
-
-    for i in range(min(count, 5)):
-        text = articles.nth(i).inner_text()
-        print("\n--- POST", i + 1, "---")
-        print(text[:1500])
-
-    browser.close()
+print("Status:", response.status_code)
+print(response.text[:5000])
