@@ -18,9 +18,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Install Chromium
-        run: playwright install chromium
         
       - name: Run test
         env:
