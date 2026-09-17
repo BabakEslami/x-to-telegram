@@ -1,25 +1,52 @@
 import os
-import requests
-from tweetkit_x import TweetKit
+from playwright.sync_api import sync_playwright
 
 X_USERNAME = "melatonin38"
 
-X_AUTH_TOKEN = os.environ["X_AUTH_TOKEN"]
-X_CT0 = os.environ["X_CT0"]
+AUTH_TOKEN = os.environ["X_AUTH_TOKEN"]
+CT0 = os.environ["X_CT0"]
 
-TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
-TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
 
-cookie = f"auth_token={X_AUTH_TOKEN}; ct0={X_CT0}"
+    context = browser.new_context()
 
-tk = TweetKit(cookie=cookie)
+    context.add_cookies([
+        {
+            "name": "auth_token",
+            "value": AUTH_TOKEN,
+            "domain": ".x.com",
+            "path": "/",
+            "httpOnly": True,
+            "secure": True,
+        },
+        {
+            "name": "ct0",
+            "value": CT0,
+            "domain": ".x.com",
+            "path": "/",
+            "secure": True,
+        },
+    ])
 
-tweets = tk.get_tweets(
-    username=X_USERNAME,
-    limit=5
-)
+    page = context.new_page()
 
-print(f"Found {len(tweets)} tweets")
+    url = f"https://x.com/{X_USERNAME}"
+    print("Opening:", url)
 
-for tweet in tweets:
-    print(tweet)
+    page.goto(url, wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_timeout(8000)
+
+    print("Page title:", page.title())
+
+    articles = page.locator("article")
+    count = articles.count()
+
+    print("Found articles:", count)
+
+    for i in range(min(count, 5)):
+        text = articles.nth(i).inner_text()
+        print("\n--- POST", i + 1, "---")
+        print(text[:1500])
+
+    browser.close()
