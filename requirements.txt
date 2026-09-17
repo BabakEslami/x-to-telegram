@@ -1,1 +1,2 @@
-tweetkit-x
+playwright
+requests
